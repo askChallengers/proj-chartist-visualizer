@@ -6,6 +6,7 @@
 > - npm install express
 > - npm install puppeteer
 > - npm install puppeteer-screen-recorder@3.0.3
+> - npm install dotenv
 
 ## ----RUN----
 
