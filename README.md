@@ -2,12 +2,12 @@
 
 ## ----SETTING----
 
-> npm init -y
-> npm install express
-> npm install puppeteer
-> npm install puppeteer-screen-recorder@3.0.3
+> - npm init -y
+> - npm install express
+> - npm install puppeteer
+> - npm install puppeteer-screen-recorder@3.0.3
 
 ## ----RUN----
 
-> node server.js
-> node recorder.js
+> - node server.js
+> - node recorder.js
