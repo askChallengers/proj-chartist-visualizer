@@ -1,7 +1,14 @@
 const puppeteer = require('puppeteer'); 
 const { PuppeteerScreenRecorder } = require('puppeteer-screen-recorder');
 const fs = require('fs');
+const { Storage } = require('@google-cloud/storage');
 const path = require('path');
+
+const keyFile = path.join(__dirname, 'service-account-file.json');
+const storage = new Storage({ 
+  keyFilename: keyFile 
+});
+const bucketName = 'team-ask-storage';
 
 function getFormattedDate() {
   const now = new Date();
@@ -40,23 +47,38 @@ function wait(milliseconds) {
 
   const recorder = new PuppeteerScreenRecorder(page);
 
-  const outputDir = path.join(__dirname, 'output');
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir);
-  }
-
   const formattedDate = getFormattedDate();
-  const videoPath = path.join(outputDir, `output_${formattedDate}.mp4`);
+  const localVideoPath = path.join(__dirname, `output_${formattedDate}.mp4`);
 
   await page.goto('http://localhost:3000/sample.html', {
     waitUntil: 'networkidle2',
   });
 
-  await recorder.start(videoPath);
+  await recorder.start(localVideoPath);
 
   await wait(10500);
 
   await recorder.stop();
 
   await browser.close();
+
+  // 비디오를 구글 스토리지로 업로드
+  await uploadToGCS(localVideoPath);
+
+  // 구글 스토리지에 파일 업로드하는 함수
+  async function uploadToGCS(filePath) {
+    await storage.bucket(bucketName).upload(filePath, {
+      destination: path.basename(filePath), // 파일 이름 유지
+    });
+    console.log(`${filePath}이(가) ${bucketName} 버킷에 업로드되었습니다.`);
+  }
+
+  // 업로드 후 로컬 파일 삭제
+  fs.unlink(localVideoPath, (err) => {
+    if (err) {
+      console.error(`파일 삭제 실패: ${err}`);
+    } else {
+      console.log(`${localVideoPath}이(가) 성공적으로 삭제되었습니다.`);
+    }
+  });
 })();

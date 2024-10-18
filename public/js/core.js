@@ -1,9 +1,9 @@
-const svg = d3.select("svg");
+const svg = d3.select("svg"); 
 const margin = {top: 80, right: 30, bottom: 50, left: 60};
 const width = +svg.attr("width") - margin.left - margin.right;
 const height = +svg.attr("height") - margin.top - margin.bottom;
 const barSize = 50;
-const n = 8;
+const n = 8; // 최대 표시할 아티스트 수
 const duration = 1500;
 
 const x = d3.scaleLinear([0, 1], [margin.left, width - margin.right]);
@@ -29,37 +29,35 @@ function formatValue(value) {
     }
 }
 
-fetch('/env')
-  .then(response => response.json())
-  .then(data => {
-    const goodgleSheetTopGroupUri = data.GOOGLE_SHEET_TOP8_GROUP_URI;
-
-    d3.csv(goodgleSheetTopGroupUri)
+// BigQuery에서 데이터 가져오기
+fetch('/bigquery-data')  // 서버에서 데이터 가져오는 API 호출
+    .then(response => response.json())
     .then(data => {
         data.forEach(d => {
-            d.cnt = +d.cnt;
+            console.log(d);
+            d.mv_views = +d.mv_views;  // mv_views를 숫자로 변환
+            d.reg_date = new Date(d.reg_date);  // reg_date를 Date 객체로 변환
         });
 
-        const groupedData = d3.group(data, d => d.day);
+        const groupedData = d3.group(data, d => d.reg_date.toDateString());  // reg_date를 사용하여 그룹화
 
         const keyframes = [];
-        const days = [];
+        const regDates = [];
 
-        groupedData.forEach((dataForDay, day) => {
-            days.push(day);
-            const current = dataForDay
+        groupedData.forEach((dataForDate, reg_date) => {
+            regDates.push(reg_date);
+            const current = dataForDate
                 .map(d => ({
                     artistName: d.artistName,
-                    cnt: d.cnt,
+                    cnt: d.mv_views,  // cnt를 mv_views로 대체
                     img_url: d.img_url
                 }))
                 .sort((a, b) => d3.descending(a.cnt, b.cnt))
                 .slice(0, n);
-            keyframes.push([day, current]);
+            keyframes.push([reg_date, current]);
         });
 
         const baselineGroup = svg.append("g");
-
         const barsGroup = svg.append("g");
         const labelGroup = svg.append("g");
         const valueGroup = svg.append("g");
@@ -76,7 +74,7 @@ fetch('/env')
                 d3.select(this).attr("xlink:href", "sample_img/sample.png");
             });
 
-        function updateBars([day, data]) {
+        function updateBars([reg_date, data]) {
             x.domain([0, d3.max(data, d => d.cnt)]);
             y.domain(data.map(d => d.artistName));
 
@@ -98,7 +96,7 @@ fetch('/env')
                 )
                 .transition(transition)
                 .attr("y", d => y(d.artistName)) 
-                .attr("width", d => x(d.cnt) - x(0)); 
+                .attr("width", d => x(d.cnt) - x(0));
 
             const labels = labelGroup.selectAll("text")
                 .data(data, d => d.artistName)
@@ -157,7 +155,7 @@ fetch('/env')
                 topArtistImg.attr("xlink:href", topArtist.img_url);
             }
 
-            dateLabel.text(day);
+            dateLabel.text(reg_date);  // reg_date로 날짜 라벨 업데이트
 
             const maxCnt = d3.max(data, d => d.cnt);
             const baselineValues = [
@@ -199,7 +197,3 @@ fetch('/env')
     }).catch(error => {
         console.error('Error loading or processing the data:', error);
     });
-  })
-  .catch(error => {
-    console.error('Error fetching environment variable:', error)
-});
