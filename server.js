@@ -4,7 +4,7 @@ require('dotenv').config();
 const {BigQuery} = require('@google-cloud/bigquery');
 
 const app = express();
-const port = 3000;
+const port = 8080;
 
 // 정적 파일 제공 (HTML, CSS, JavaScript)
 app.use(express.static(path.join(__dirname, 'public')));
