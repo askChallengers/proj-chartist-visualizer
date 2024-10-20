@@ -6,3 +6,4 @@ output/
 
 .env
 service-account-file.json
+cloudrun.yaml
