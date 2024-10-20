@@ -4,7 +4,7 @@
 FROM node:16
 
 # 작업 디렉토리를 설정 (프로젝트 루트)
-WORKDIR \
+WORKDIR /app
 
 # package.json과 package-lock.json을 복사
 COPY package*.json ./
