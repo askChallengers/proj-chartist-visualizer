@@ -1,0 +1,21 @@
+{
+  "name": "proj-chartist-visualizer",
+  "version": "1.0.0",
+  "description": "차트 생성, 영상 녹화 자동화",
+  "main": "record.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google-cloud/bigquery": "^7.9.1",
+    "@google-cloud/storage": "^7.13.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "puppeteer": "^23.5.3",
+    "puppeteer-screen-recorder": "^3.0.3"
+  }
+}
