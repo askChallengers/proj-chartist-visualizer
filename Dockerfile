@@ -11,12 +11,6 @@ COPY package*.json ./
 
 # 프로덕션 환경에서 필요한 모듈만 설치
 RUN npm install --only=production
-RUN npm install @google-cloud/bigquery@7.9.1
-RUN npm install @google-cloud/storage@7.13.0
-RUN npm install dotenv@16.4.5
-RUN npm install express@4.21.1
-RUN npm install puppeteer-screen-recorder@3.0.3
-RUN npm install puppeteer@23.6.0
 
 # 나머지 애플리케이션 파일 복사
 COPY . .
