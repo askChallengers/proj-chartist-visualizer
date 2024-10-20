@@ -81,4 +81,7 @@ function wait(milliseconds) {
       console.log(`${localVideoPath}이(가) 성공적으로 삭제되었습니다.`);
     }
   });
+
+  // 프로세스 종료
+  process.exit(0);
 })();
