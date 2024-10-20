@@ -34,22 +34,34 @@ fetch('/bigquery-data')  // 서버에서 데이터 가져오는 API 호출
     .then(response => response.json())
     .then(data => {
         data.forEach(d => {
-            console.log(d);
-            d.mv_views = +d.mv_views;  // mv_views를 숫자로 변환
-            d.reg_date = new Date(d.reg_date);  // reg_date를 Date 객체로 변환
+            d.view_count = +d.view_count;  // view_count를 숫자로 변환
+
+            let regDateString;
+            if (typeof d.reg_date === 'object' && 'value' in d.reg_date) {
+                regDateString = d.reg_date.value;
+            } else if (typeof d.reg_date === 'string') {
+                regDateString = d.reg_date;
+            } else {
+                console.error("Unknown reg_date format:", d.reg_date);
+                return;
+            }
+
+            const formattedDate = regDateString.replace('T', ' ');
+            d.reg_date = new Date(formattedDate);
+
+            if (isNaN(d.reg_date)) {
+                console.error("Invalid date format:", d.reg_date);
+            }
         });
 
-        const groupedData = d3.group(data, d => d.reg_date.toDateString());  // reg_date를 사용하여 그룹화
+        const groupedData = d3.group(data, d => d3.timeFormat("%Y-%m-%d")(d.reg_date));
 
         const keyframes = [];
-        const regDates = [];
-
         groupedData.forEach((dataForDate, reg_date) => {
-            regDates.push(reg_date);
             const current = dataForDate
                 .map(d => ({
                     artistName: d.artistName,
-                    cnt: d.mv_views,  // cnt를 mv_views로 대체
+                    cnt: d.view_count,
                     img_url: d.img_url
                 }))
                 .sort((a, b) => d3.descending(a.cnt, b.cnt))
@@ -155,7 +167,7 @@ fetch('/bigquery-data')  // 서버에서 데이터 가져오는 API 호출
                 topArtistImg.attr("xlink:href", topArtist.img_url);
             }
 
-            dateLabel.text(reg_date);  // reg_date로 날짜 라벨 업데이트
+            dateLabel.text(reg_date);
 
             const maxCnt = d3.max(data, d => d.cnt);
             const baselineValues = [
@@ -167,7 +179,7 @@ fetch('/bigquery-data')  // 서버에서 데이터 가져오는 API 호출
             baselineGroup.selectAll(".baseline").remove();
             baselineGroup.selectAll(".baseline-label").remove();
 
-            baselineValues.forEach((baselineValue, index) => {
+            baselineValues.forEach((baselineValue) => {
                 baselineGroup.append("line")
                     .attr("class", "baseline")
                     .attr("x1", x(baselineValue))
@@ -197,3 +209,4 @@ fetch('/bigquery-data')  // 서버에서 데이터 가져오는 API 호출
     }).catch(error => {
         console.error('Error loading or processing the data:', error);
     });
+

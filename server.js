@@ -26,9 +26,9 @@ app.get('/bigquery-data', async (req, res) => {
   try {
       const query = 
       `
-      SELECT artistName, mv_views, img_url, reg_date
+      SELECT artistName, view_count, img_url, reg_date
       FROM team-ask-infra.chartist.daily_report
-      WHERE mv_views IS NOT NULL
+      WHERE view_count IS NOT NULL
       ORDER BY reg_date
       LIMIT 100;
       `;
