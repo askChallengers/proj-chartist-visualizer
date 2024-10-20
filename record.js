@@ -50,7 +50,7 @@ function wait(milliseconds) {
   const formattedDate = getFormattedDate();
   const localVideoPath = path.join(__dirname, `output_${formattedDate}.mp4`);
 
-  await page.goto('http://localhost:3000/sample.html', {
+  await page.goto('http://localhost:8080/sample.html', {
     waitUntil: 'networkidle2',
   });
 
