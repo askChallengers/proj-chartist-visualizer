@@ -10,7 +10,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # 프로덕션 환경에서 필요한 모듈만 설치
-RUN npm install --only=production
+RUN npm install
 
 # 나머지 애플리케이션 파일 복사
 COPY . .
