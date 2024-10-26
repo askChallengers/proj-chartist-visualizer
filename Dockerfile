@@ -24,7 +24,7 @@ RUN apt-get update && apt-get install -y \
     rm -rf /var/lib/apt/lists/*
 
 # Set the working directory
-WORKDIR /app
+WORKDIR /service/app
 
 # Copy package.json and package-lock.json
 COPY package*.json ./
