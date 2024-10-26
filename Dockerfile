@@ -1,6 +1,5 @@
 # Dockerfile
 
-# Node.js 이미지를 기반으로 설정
 FROM node:16
 
 # Install necessary packages for Puppeteer
@@ -24,19 +23,20 @@ RUN apt-get update && apt-get install -y \
     --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
-# 작업 디렉토리를 설정 (프로젝트 루트)
-WORKDIR /app
+# Set the working directory
+WORKDIR /usr/src/app
 
-# package.json과 package-lock.json을 복사
+# Copy package.json and package-lock.json
 COPY package*.json ./
 
-# 프로덕션 환경에서 필요한 모듈만 설치
+# Install dependencies
 RUN npm install
 
-# 나머지 애플리케이션 파일 복사
+# Copy the rest of your application code
 COPY . .
 
-# Make the start script executable
+# Copy and set permissions for the start script
+COPY start.sh .
 RUN chmod +x start.sh
 
 # Run the start script
