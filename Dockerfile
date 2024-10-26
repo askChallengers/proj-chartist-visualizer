@@ -15,5 +15,11 @@ RUN npm install
 # 나머지 애플리케이션 파일 복사
 COPY . .
 
-# 앱 실행
+# Copy the start script
+COPY start.sh .
+
+# Make the start script executable
+RUN chmod +x start.sh
+
+# Run the start script
 CMD ["./start.sh"]
