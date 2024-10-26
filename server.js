@@ -30,7 +30,7 @@ app.get('/bigquery-data', async (req, res) => {
       FROM team-ask-infra.chartist.daily_report
       WHERE view_count IS NOT NULL
       ORDER BY reg_date
-      LIMIT 100;
+      ;
       `;
       const [rows] = await bigquery.query(query);
       res.json(rows);  // JSON으로 응답

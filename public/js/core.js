@@ -1,4 +1,4 @@
-const svg = d3.select("svg"); 
+const svg = d3.select("svg");
 const margin = {top: 80, right: 30, bottom: 50, left: 60};
 const width = +svg.attr("width") - margin.left - margin.right;
 const height = +svg.attr("height") - margin.top - margin.bottom;
@@ -6,7 +6,7 @@ const barSize = 50;
 const n = 8; // 최대 표시할 아티스트 수
 const duration = 1500;
 
-const x = d3.scaleLinear([0, 1], [margin.left, width - margin.right]);
+const x = d3.scaleLinear().range([margin.left, width - margin.right]);
 const y = d3.scaleBand()
     .range([margin.top + 70, margin.top + 100 + barSize * n * 1.2])
     .padding(0.3);
@@ -30,11 +30,11 @@ function formatValue(value) {
 }
 
 // BigQuery에서 데이터 가져오기
-fetch('/bigquery-data')  // 서버에서 데이터 가져오는 API 호출
+fetch('/bigquery-data') 
     .then(response => response.json())
     .then(data => {
         data.forEach(d => {
-            d.view_count = +d.view_count;  // view_count를 숫자로 변환
+            d.view_count = +d.view_count;
 
             let regDateString;
             if (typeof d.reg_date === 'object' && 'value' in d.reg_date) {
@@ -54,11 +54,15 @@ fetch('/bigquery-data')  // 서버에서 데이터 가져오는 API 호출
             }
         });
 
+        // 날짜별로 데이터 그룹화
         const groupedData = d3.group(data, d => d3.timeFormat("%Y-%m-%d")(d.reg_date));
+        
+        // 각 날짜별 view_count 누적
+        const cumulativeData = [];
+        let cumulativeCounts = {};
 
-        const keyframes = [];
         groupedData.forEach((dataForDate, reg_date) => {
-            const current = dataForDate
+            let current = dataForDate
                 .map(d => ({
                     artistName: d.artistName,
                     cnt: d.view_count,
@@ -66,8 +70,24 @@ fetch('/bigquery-data')  // 서버에서 데이터 가져오는 API 호출
                 }))
                 .sort((a, b) => d3.descending(a.cnt, b.cnt))
                 .slice(0, n);
-            keyframes.push([reg_date, current]);
+                
+            // 누적 계산
+            current.forEach(d => {
+                if (!cumulativeCounts[d.artistName]) {
+                    cumulativeCounts[d.artistName] = 0;
+                }
+                cumulativeCounts[d.artistName] += d.cnt;
+            });
+
+            // 누적된 데이터 추가
+            cumulativeData.push([reg_date, Object.entries(cumulativeCounts).map(([artistName, cnt]) => ({
+                artistName,
+                cnt,
+                img_url: current.find(c => c.artistName === artistName)?.img_url || ""
+            }))]);
         });
+
+        const keyframes = cumulativeData.map(([reg_date, data]) => [reg_date, data.sort((a, b) => d3.descending(a.cnt, b.cnt)).slice(0, n)]);
 
         const baselineGroup = svg.append("g");
         const barsGroup = svg.append("g");
@@ -87,13 +107,17 @@ fetch('/bigquery-data')  // 서버에서 데이터 가져오는 API 호출
             });
 
         function updateBars([reg_date, data]) {
+            // 데이터가 올바르게 전달되는지 확인
+            console.log(`Date: ${reg_date}`);
+            console.log("Top 8 data for this date:", data);
+        
             x.domain([0, d3.max(data, d => d.cnt)]);
             y.domain(data.map(d => d.artistName));
-
+        
             const transition = svg.transition()
                 .duration(duration)
                 .ease(d3.easeLinear);
-
+        
             const bars = barsGroup.selectAll("rect")
                 .data(data, d => d.artistName)
                 .join(
@@ -107,9 +131,9 @@ fetch('/bigquery-data')  // 서버에서 데이터 가져오는 API 호출
                     exit => exit.remove()
                 )
                 .transition(transition)
-                .attr("y", d => y(d.artistName)) 
+                .attr("y", d => y(d.artistName))
                 .attr("width", d => x(d.cnt) - x(0));
-
+        
             const labels = labelGroup.selectAll("text")
                 .data(data, d => d.artistName)
                 .join(
@@ -125,7 +149,7 @@ fetch('/bigquery-data')  // 서버에서 데이터 가져오는 API 호출
                 .transition(transition)
                 .attr("x", d => x(d.cnt) - 5)
                 .attr("y", d => y(d.artistName) + y.bandwidth() / 3);
-
+        
             const values = valueGroup.selectAll("text")
                 .data(data, d => d.artistName)
                 .join(
@@ -142,7 +166,7 @@ fetch('/bigquery-data')  // 서버에서 데이터 가져오는 API 호출
                 .attr("x", d => x(d.cnt) - 5)
                 .attr("y", d => y(d.artistName) + y.bandwidth() * 2 / 3)
                 .text(d => formatValue(d.cnt));
-
+        
             const artistImgs = imgGroup.selectAll("image")
                 .data(data, d => d.artistName)
                 .join(
@@ -161,24 +185,24 @@ fetch('/bigquery-data')  // 서버에서 데이터 가져오는 API 호출
                 )
                 .transition(transition)
                 .attr("y", d => y(d.artistName) + y.bandwidth() / 4);
-
+        
             if (data.length > 0) {
                 const topArtist = data[0];
                 topArtistImg.attr("xlink:href", topArtist.img_url);
             }
-
+        
             dateLabel.text(reg_date);
-
+        
             const maxCnt = d3.max(data, d => d.cnt);
             const baselineValues = [
                 maxCnt * 0.3,
                 maxCnt * 0.6,
                 maxCnt * 0.9
             ];
-
+        
             baselineGroup.selectAll(".baseline").remove();
             baselineGroup.selectAll(".baseline-label").remove();
-
+        
             baselineValues.forEach((baselineValue) => {
                 baselineGroup.append("line")
                     .attr("class", "baseline")
@@ -186,7 +210,7 @@ fetch('/bigquery-data')  // 서버에서 데이터 가져오는 API 호출
                     .attr("y1", margin.top + 70)
                     .attr("x2", x(baselineValue))
                     .attr("y2", height + margin.top + 100 - 90);
-
+        
                 baselineGroup.append("text")
                     .attr("class", "baseline-label")
                     .attr("x", x(baselineValue) + 5)
@@ -195,7 +219,7 @@ fetch('/bigquery-data')  // 서버에서 데이터 가져오는 API 호출
                     .attr("dy", "0.35em");
             });
         }
-
+        
         let idx = 0;
         function tick() {
             if (idx < keyframes.length) {
@@ -209,4 +233,3 @@ fetch('/bigquery-data')  // 서버에서 데이터 가져오는 API 호출
     }).catch(error => {
         console.error('Error loading or processing the data:', error);
     });
-
