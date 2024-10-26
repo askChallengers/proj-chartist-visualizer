@@ -20,6 +20,7 @@ RUN apt-get update && apt-get install -y \
     libxrandr2 \
     xdg-utils \
     libdrm2 \
+    libgbm1 \
     --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
