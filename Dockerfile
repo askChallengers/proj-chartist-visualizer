@@ -3,6 +3,25 @@
 # Node.js 이미지를 기반으로 설정
 FROM node:16
 
+# Install necessary packages for Puppeteer
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    fonts-liberation \
+    libappindicator3-1 \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libcups2 \
+    libdbus-1-3 \
+    libgdk-pixbuf2.0-0 \
+    libnspr4 \
+    libnss3 \
+    libxcomposite1 \
+    libxrandr2 \
+    xdg-utils \
+    --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
+
 # 작업 디렉토리를 설정 (프로젝트 루트)
 WORKDIR /app
 
