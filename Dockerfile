@@ -16,4 +16,4 @@ RUN npm install
 COPY . .
 
 # 앱 실행
-CMD ["sh", "-c", "node server.js && node record.js"]
+CMD ["./start.sh"]
