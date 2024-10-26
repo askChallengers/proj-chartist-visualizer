@@ -26,10 +26,15 @@ function wait(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
+// (async () => {
+//   const browser = await puppeteer.launch({
+//     headless: false,
+//     args: ['--autoplay-policy=no-user-gesture-required']
+//   });
+
 (async () => {
   const browser = await puppeteer.launch({
-    headless: false,
-    args: ['--autoplay-policy=no-user-gesture-required']
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
 
   const page = await browser.newPage();
