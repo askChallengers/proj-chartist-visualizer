@@ -34,7 +34,7 @@ app.get('/bigquery-data', async (req, res) => {
       FROM team-ask-infra.chartist.daily_report
       WHERE view_count IS NOT NULL
       AND reg_date BETWEEN start_date AND end_date
-      ORDER BY reg_date desc
+      ORDER BY reg_date
       ;
       `;
       const [rows] = await bigquery.query(query);
