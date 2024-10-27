@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Start server.js and put it in the background
 node server.js &
