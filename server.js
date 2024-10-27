@@ -11,7 +11,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
 // const keyFile = path.join(__dirname, 'service-account-file.json');
-const keyFile = '/secrets/service-account-file.json';
+const keyFile = '/secrets/team-ask-visualizer-google-cloud-access-info-json';
 const bigquery = new BigQuery({
   keyFilename: keyFile
 });
