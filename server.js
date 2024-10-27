@@ -10,8 +10,7 @@ const port = 8080;
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
-// const keyFile = path.join(__dirname, 'service-account-file.json');
-const keyFile = '/secrets/service-account-file.json';
+const keyFile = path.join(__dirname, 'service-account-file.json');
 const bigquery = new BigQuery({
   keyFilename: keyFile
 });
