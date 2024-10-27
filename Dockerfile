@@ -37,7 +37,7 @@ COPY . .
 
 # Copy and set permissions for the start script
 # COPY start.sh .
-# RUN chmod +x start.sh
+RUN chmod +x start.sh
 
 # Run the start script
 CMD ["./start.sh"]
