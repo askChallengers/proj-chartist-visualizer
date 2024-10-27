@@ -4,7 +4,8 @@ const fs = require('fs');
 const { Storage } = require('@google-cloud/storage');
 const path = require('path');
 
-const keyFile = path.join(__dirname, 'service-account-file.json');
+// const keyFile = path.join(__dirname, 'service-account-file.json');
+const keyFile = '/secrets/team-ask-visualizer-google-cloud-access-info-json';
 const storage = new Storage({ 
   keyFilename: keyFile 
 });
