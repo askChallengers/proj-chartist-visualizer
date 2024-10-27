@@ -27,10 +27,14 @@ app.get('/bigquery-data', async (req, res) => {
   try {
       const query = 
       `
+      DECLARE end_date DATE DEFAULT CURRENT_DATE('Asia/Seoul') - 1;
+      DECLARE start_date DATE DEFAULT end_date - 6;
+
       SELECT artistName, view_count, img_url, reg_date
       FROM team-ask-infra.chartist.daily_report
       WHERE view_count IS NOT NULL
-      ORDER BY reg_date
+      AND reg_date BETWEEN start_date AND end_date
+      ORDER BY reg_date desc
       ;
       `;
       const [rows] = await bigquery.query(query);
