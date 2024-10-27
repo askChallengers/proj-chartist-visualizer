@@ -39,5 +39,7 @@ COPY . .
 # COPY start.sh .
 RUN chmod +x start.sh
 
+RUN ls -R
+
 # Run the start script
 CMD ["./start.sh"]
