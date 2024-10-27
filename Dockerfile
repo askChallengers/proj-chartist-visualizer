@@ -1,5 +1,4 @@
 # Dockerfile
-
 FROM node:16
 
 # Install necessary packages for Puppeteer
@@ -35,10 +34,11 @@ RUN npm install
 # Copy the rest of your application code
 COPY . .
 
-# Copy and set permissions for the start script
-# COPY start.sh .
-# RUN chmod +x start.sh
+# Ensure start.sh is copied and has execute permission
+COPY start.sh ./start.sh
+RUN chmod +x ./start.sh
 
+# 디렉터리 구조 출력(디버깅용)
 RUN ls -R
 
 # Run the start script
