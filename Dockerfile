@@ -37,3 +37,5 @@ RUN npm install
 COPY . .
 
 RUN ls -R
+# Make the start script executable
+RUN chmod +x start.sh
