@@ -56,12 +56,19 @@ fetch('/bigquery-data')
 
         // 날짜별로 데이터 그룹화
         const groupedData = d3.group(data, d => d3.timeFormat("%Y-%m-%d")(d.reg_date));
-        
+
         // 각 날짜별 view_count 누적
         const cumulativeData = [];
         let cumulativeCounts = {};
+        let lastValidData = new Map(); // 이전 데이터 저장
 
         groupedData.forEach((dataForDate, reg_date) => {
+
+            // 기존 데이터가 없으면 이전 날짜의 데이터를 사용
+            if (dataForDate.length === 0 && lastValidData.size > 0) {
+                dataForDate = Array.from(lastValidData.values());
+            }
+
             let current = dataForDate
                 .map(d => ({
                     artistName: d.artistName,
@@ -70,22 +77,24 @@ fetch('/bigquery-data')
                 }))
                 .sort((a, b) => d3.descending(a.cnt, b.cnt))
                 .slice(0, n);
-                
+
             // 누적 계산
             current.forEach(d => {
                 if (!cumulativeCounts[d.artistName]) {
                     cumulativeCounts[d.artistName] = 0;
                 }
                 cumulativeCounts[d.artistName] += d.cnt;
+                lastValidData.set(d.artistName, d); // 현재 데이터를 저장
             });
 
             // 누적된 데이터 추가
             cumulativeData.push([reg_date, Object.entries(cumulativeCounts).map(([artistName, cnt]) => ({
                 artistName,
                 cnt,
-                img_url: current.find(c => c.artistName === artistName)?.img_url || ""
+                img_url: lastValidData.get(artistName)?.img_url || ""
             }))]);
         });
+
 
         const keyframes = cumulativeData.map(([reg_date, data]) => [reg_date, data.sort((a, b) => d3.descending(a.cnt, b.cnt)).slice(0, n)]);
 

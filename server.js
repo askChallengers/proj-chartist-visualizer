@@ -17,28 +17,41 @@ const bigquery = new BigQuery({
 });
 
 // 클라이언트에 환경변수 전달
-app.get('/env', (req, res) => {
-  res.json({
-    GOOGLE_SHEET_TOP8_GROUP_URI: process.env.GOOGLE_SHEET_TOP8_GROUP_URI
-  });
-});
-
 app.get('/bigquery-data', async (req, res) => {
   try {
       const query = 
       `
-      DECLARE end_date DATE DEFAULT CURRENT_DATE('Asia/Seoul') - 1;
-      DECLARE start_date DATE DEFAULT end_date - 6;
+        DECLARE end_date DATE DEFAULT CURRENT_DATE('Asia/Seoul') - 1;
+        DECLARE start_date DATE DEFAULT end_date - 6;
 
-      SELECT artistName, view_count, img_url, reg_date
-      FROM team-ask-infra.chartist.daily_report
-      WHERE view_count IS NOT NULL
-      AND reg_date BETWEEN start_date AND end_date
-      ORDER BY reg_date
-      ;
+        WITH latest_img AS (
+          SELECT 
+            artistId
+            , img_url
+            , reg_date
+            , ROW_NUMBER() OVER (PARTITION BY artistId ORDER BY reg_date DESC) AS rn
+          FROM team-ask-infra.chartist.daily_report
+          WHERE 1 = 1 
+            AND reg_date BETWEEN start_date AND end_date
+        )
+
+        SELECT 
+          main.artistName
+          , main.view_count
+          , latest.img_url
+          , main.reg_date
+        FROM team-ask-infra.chartist.daily_report main
+          JOIN latest_img latest ON main.artistId = latest.artistId AND latest.rn = 1
+        WHERE 1 = 1 
+          AND main.view_count IS NOT NULL
+          AND main.reg_date BETWEEN start_date AND end_date
+        ORDER BY main.reg_date
+        ;
       `;
       const [rows] = await bigquery.query(query);
       res.json(rows);  // JSON으로 응답
+
+      console.log('BigQuery rows:', rows);
   } catch (error) {
       console.error('BigQuery error:', error);
       res.status(500).send('Internal Server Error');
