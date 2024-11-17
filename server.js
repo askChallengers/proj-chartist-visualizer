@@ -10,12 +10,6 @@ const port = 8080;
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
-// UTF-8 인코딩 설정 추가
-app.use((req, res, next) => {
-  res.setHeader('Content-Type', 'application/json; charset=UTF-8');
-  next();
-});
-
 // const keyFile = path.join(__dirname, 'service-account-file.json');
 const keyFile = '/secrets/team-ask-visualizer-google-cloud-access-info-json';
 const bigquery = new BigQuery({
