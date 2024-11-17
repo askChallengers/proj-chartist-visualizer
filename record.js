@@ -40,11 +40,6 @@ function wait(milliseconds) {
 
   const page = await browser.newPage();
 
-  // UTF-8 인코딩 설정
-  await page.setExtraHTTPHeaders({
-    'Accept-Charset': 'UTF-8'
-  });
-
   await page.setViewport({
     width: 520,
     height: 720,
