@@ -3,9 +3,12 @@
 # Node.js 이미지를 기반으로 설정
 FROM node:16
 
-# UTF-8 인코딩 설정
-# ENV LANG=ko_KR.UTF-8
-# ENV LC_ALL=ko_KR.UTF-8
+# 한글 폰트 설치
+RUN apt-get update && apt-get install -y \
+    fonts-nanum \
+    --no-install-recommends && \
+    fc-cache -fv && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install necessary packages for Puppeteer
 RUN apt-get update && apt-get install -y \
