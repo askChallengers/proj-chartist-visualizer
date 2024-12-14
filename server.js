@@ -1,17 +1,16 @@
 const express = require('express');
 const path = require('path');
-require('dotenv').config();
 const {BigQuery} = require('@google-cloud/bigquery');
+const config = require('./config.js');
 
 const app = express();
-const port = 8080;
+const port = `${config.port}`;
 
 // 정적 파일 제공 (HTML, CSS, JavaScript)
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
-// const keyFile = path.join(__dirname, 'service-account-file.json');
-const keyFile = '/secrets/team-ask-visualizer-google-cloud-access-info-json';
+const keyFile = `${config.keyFile}`;
 const bigquery = new BigQuery({
   keyFilename: keyFile
 });
@@ -22,7 +21,7 @@ app.get('/bigquery-data', async (req, res) => {
       const query = 
       `
         DECLARE end_date DATE DEFAULT CURRENT_DATE('Asia/Seoul') - 1;
-        DECLARE start_date DATE DEFAULT end_date - 6;
+        DECLARE start_date DATE DEFAULT end_date - (${config.period} - 1);
 
         WITH latest_img AS (
           SELECT 
@@ -56,6 +55,11 @@ app.get('/bigquery-data', async (req, res) => {
       console.error('BigQuery error:', error);
       res.status(500).send('Internal Server Error');
   }
+});
+
+app.get('/config', (req, res) => {
+  const config = require('./config.js');  // config.js 파일을 가져옵니다
+  res.json(config);  // JSON 형태로 클라이언트에 전달
 });
 
 // 서버 시작

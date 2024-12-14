@@ -3,9 +3,10 @@ const { PuppeteerScreenRecorder } = require('puppeteer-screen-recorder');
 const fs = require('fs');
 const { Storage } = require('@google-cloud/storage');
 const path = require('path');
+const config = require('./config.js');
 
-// const keyFile = path.join(__dirname, 'service-account-file.json');
-const keyFile = '/secrets/team-ask-visualizer-google-cloud-access-info-json';
+const port = `${config.port}`;
+const keyFile = `${config.keyFile}`;
 const storage = new Storage({ 
   keyFilename: keyFile 
 });
@@ -23,12 +24,6 @@ function getFormattedDate() {
 function wait(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
-
-// (async () => {
-//   const browser = await puppeteer.launch({
-//     headless: false,
-//     args: ['--autoplay-policy=no-user-gesture-required']
-//   });
 
 (async () => {
   const browser = await puppeteer.launch({
@@ -53,13 +48,13 @@ function wait(milliseconds) {
   const formattedDate = getFormattedDate();
   const localVideoPath = path.join(__dirname, `output_${formattedDate}.mp4`);
 
-  await page.goto('http://localhost:8080/sample.html', {
+  await page.goto('http://localhost:'+port+'/sample.html', {
     waitUntil: 'networkidle2',
   });
 
   await recorder.start(localVideoPath);
 
-  await wait(10500);
+  await wait(config.video_time);
 
   await recorder.stop();
 

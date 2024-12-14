@@ -1,23 +1,48 @@
-const svg = d3.select("svg");
-const margin = {top: 80, right: 30, bottom: 50, left: 60};
-const width = +svg.attr("width") - margin.left - margin.right;
-const height = +svg.attr("height") - margin.top - margin.bottom;
-const barSize = 50;
-const n = 8; // 최대 표시할 아티스트 수
-const duration = 1500;
+// const svg = d3.select("svg");
+// body의 SVG를 동적으로 설정
+const body = d3.select("body");
 
-const x = d3.scaleLinear().range([margin.left, width - margin.right]);
-const y = d3.scaleBand()
-    .range([margin.top + 70, margin.top + 100 + barSize * n * 1.2])
-    .padding(0.3);
+const svg = body.append("svg")
+    .attr("width", 500)
+    .attr("height", 700)
+    .attr("viewBox", "0 0 500 700")
+    .attr("preserveAspectRatio", "xMidYMid meet");
 
-const color = d3.scaleOrdinal(d3.schemeTableau10);
+// SVG 내부 요소 추가
+svg.append("defs")
+    .append("linearGradient")
+    .attr("id", "gradient")
+    .attr("x1", "0%")
+    .attr("y1", "0%")
+    .attr("x2", "100%")
+    .attr("y2", "100%")
+    .selectAll("stop")
+    .data([
+        { offset: "0%", color: "#ff007a", opacity: 1 },
+        { offset: "100%", color: "#ff8c00", opacity: 1 }
+    ])
+    .join("stop")
+    .attr("offset", d => d.offset)
+    .style("stop-color", d => d.color)
+    .style("stop-opacity", d => d.opacity);
 
-const dateLabel = svg.append("text")
-    .attr("class", "date-label")
-    .attr("x", width - 150)
-    .attr("y", margin.top + 40)
-    .attr("text-anchor", "end");
+// 제목 텍스트 추가
+// 상단 제목 추가
+// svg.append("text")
+//     .insert("div", ":first-child") // body의 첫 번째 자식으로 삽입
+//     .attr("class", "chart-title-container") // 컨테이너 클래스
+//     .append("h1")
+//     .attr("class", "chart-title") // 제목 클래스
+//     .text("Who's Weekly Top K-Pop Group?"); // 제목 텍스트
+
+svg.append("text")
+    .attr("class", "chart-title")
+    .attr("x", "50%")
+    .attr("y", 60)
+    .text("Who's Weekly Top K-Pop Group?");
+
+
+
 
 function formatValue(value) {
     if (value >= 1e6) {
@@ -29,10 +54,38 @@ function formatValue(value) {
     }
 }
 
-// BigQuery에서 데이터 가져오기
-fetch('/bigquery-data') 
-    .then(response => response.json())
-    .then(data => {
+async function loadData() {
+    try{
+        // config.js에서 설정 가져오기
+        const configResponse = await fetch('/config');
+        const config = await configResponse.json();
+        
+        // config에서 n과 duration 설정 값 가져오기
+        const n = config.result_cnt || 8;  // 기본값 8
+        const duration = config.duration || 2000;  // 기본값 2000ms
+
+        const margin = {top: 80, right: 30, bottom: 50, left: 60};
+        const width = +svg.attr("width") - margin.left - margin.right;
+        const height = +svg.attr("height") - margin.top - margin.bottom;
+        const barSize = 50;
+
+        const x = d3.scaleLinear().range([margin.left, width - margin.right]);
+        const y = d3.scaleBand()
+            .range([margin.top + 70, margin.top + 100 + barSize * n * 1.2])
+            .padding(0.3);
+
+        const color = d3.scaleOrdinal(d3.schemeTableau10);
+
+        const dateLabel = svg.append("text")
+            .attr("class", "date-label")
+            .attr("x", width - 150)
+            .attr("y", margin.top + 40)
+            .attr("text-anchor", "end");
+
+        // BigQuery에서 데이터 가져오기
+        const dataResponse = await fetch('/bigquery-data');
+        const data = await dataResponse.json();
+
         data.forEach(d => {
             d.view_count = +d.view_count;
 
@@ -116,103 +169,123 @@ fetch('/bigquery-data')
             });
 
         function updateBars([reg_date, data]) {
-            // 데이터가 올바르게 전달되는지 확인
             console.log(`Date: ${reg_date}`);
             console.log("Top 8 data for this date:", data);
         
+            // 스케일 및 트랜지션 설정
             x.domain([0, d3.max(data, d => d.cnt)]);
             y.domain(data.map(d => d.artistName));
+            const transition = svg.transition().duration(duration).ease(d3.easeLinear);
         
-            const transition = svg.transition()
-                .duration(duration)
-                .ease(d3.easeLinear);
-        
-            const bars = barsGroup.selectAll("rect")
-                .data(data, d => d.artistName)
-                .join(
-                    enter => enter.append("rect")
+            // 그룹 및 설정 배열
+            const updateConfig = [
+                {
+                    group: barsGroup.selectAll("rect"),
+                    enter: enter => enter.append("rect")
                         .attr("fill", d => color(d.artistName))
                         .attr("x", x(0) + 10)
                         .attr("y", d => y(d.artistName))
-                        .attr("height", y.bandwidth())
-                        .attr("width", 0),
-                    update => update,
-                    exit => exit.remove()
-                )
-                .transition(transition)
-                .attr("y", d => y(d.artistName))
-                .attr("width", d => x(d.cnt) - x(0));
-        
-            const labels = labelGroup.selectAll("text")
-                .data(data, d => d.artistName)
-                .join(
-                    enter => enter.append("text")
+                        .attr("height", y.bandwidth() * 0.65)
+                        .transition(transition)
+                        .attr("width", d => x(d.cnt) - x(0)),
+                    update: update => update
+                        .transition(transition)
+                        .attr("y", d => y(d.artistName))
+                        .attr("width", d => x(d.cnt) - x(0)),
+                    exit: exit => exit.remove()
+                },
+                {
+                    group: labelGroup.selectAll("text"),
+                    enter: enter => enter.append("text")
                         .attr("class", "label")
+                        .attr("x", x(0) + 10) // 막대 시작 부분에 고정
+                        .attr("y", d => y(d.artistName) + y.bandwidth() / 3) // 막대 높이 중앙 근처
+                        .attr("dy", "0.35em")
+                        .text(d => d.artistName)
+                        .transition(transition),
+                    update: update => update
+                        .transition(transition)
+                        .attr("x", x(0) + 10) // 항상 막대 시작 부분에 고정
+                        .attr("y", d => y(d.artistName) + y.bandwidth() / 3),
+                    exit: exit => exit.remove()
+                },
+                {
+                    group: valueGroup.selectAll("text"),
+                    enter: enter => enter.append("text")
+                        .attr("class", "value")
                         .attr("x", d => x(d.cnt) - 5)
                         .attr("y", d => y(d.artistName) + y.bandwidth() / 3)
                         .attr("dy", "0.35em")
-                        .text(d => `${d.artistName}`),
-                    update => update,
-                    exit => exit.remove()
-                )
-                .transition(transition)
-                .attr("x", d => x(d.cnt) - 5)
-                .attr("y", d => y(d.artistName) + y.bandwidth() / 3);
-        
-            const values = valueGroup.selectAll("text")
-                .data(data, d => d.artistName)
-                .join(
-                    enter => enter.append("text")
-                        .attr("class", "value")
+                        .text(d => formatValue(d.cnt))
+                        .transition(transition),
+                    update: update => update
+                        .transition(transition)
                         .attr("x", d => x(d.cnt) - 5)
-                        .attr("y", d => y(d.artistName) + y.bandwidth() * 2 / 3)
-                        .attr("dy", "0.35em")
+                        .attr("y", d => y(d.artistName) + y.bandwidth() / 3)
                         .text(d => formatValue(d.cnt)),
-                    update => update,
-                    exit => exit.remove()
-                )
-                .transition(transition)
-                .attr("x", d => x(d.cnt) - 5)
-                .attr("y", d => y(d.artistName) + y.bandwidth() * 2 / 3)
-                .text(d => formatValue(d.cnt));
-        
-            const artistImgs = imgGroup.selectAll("image")
-                .data(data, d => d.artistName)
-                .join(
-                    enter => enter.append("image")
+                    exit: exit => exit.remove()
+                },
+                // {
+                //     group: imgGroup.selectAll("foreignObject"),
+                //     enter: enter => enter.append("foreignObject")
+                //         .attr("x", x(0) - 45) // 이미지 위치
+                //         .attr("y", y(d.artistName) - 11) // 이미지 위치
+                //         .attr("width", 50) // 이미지 너비
+                //         .attr("height", 50) // 이미지 높이
+                //         .append("xhtml:div") // HTML 요소로 이미지 추가
+                //         .style("width", "50px")
+                //         .style("height", "50px")
+                //         .style("border-radius", "15px") // 둥근 테두리 적용
+                //         .style("overflow", "hidden") // 이미지 잘림 방지
+                //         .style("background-image", d => `url(${d.img_url})`) // 배경 이미지 설정
+                //         .style("background-size", "cover") // 이미지 크기 조정
+                //         .style("background-position", "center"),
+                //     update: update => update
+                //         .transition(transition)
+                //         .attr("x", x(0) - 45)
+                //         .attr("y", y(d.artistName) - 11),
+                //     exit: exit => exit.remove()
+                // }
+                
+                
+                {
+                    group: imgGroup.selectAll("image"),
+                    enter: enter => enter.append("image")
                         .attr("class", "artist-img")
                         .attr("xlink:href", d => d.img_url)
                         .attr("x", x(0) - 45)
-                        .attr("y", d => y(d.artistName))
-                        .attr("width", 30)
-                        .attr("height", 30)
+                        .attr("y", d => y(d.artistName) - 11)
+                        .attr("preserveAspectRatio", "none")
                         .on("error", function() {
                             d3.select(this).attr("xlink:href", "sample_img/sample.png");
-                        }),
-                    update => update,
-                    exit => exit.remove()
-                )
-                .transition(transition)
-                .attr("y", d => y(d.artistName) + y.bandwidth() / 4);
+                        })
+                        .transition(transition),
+                    update: update => update
+                        .transition(transition),
+                    exit: exit => exit.remove()
+                }
+            ];
         
+            // 공통 로직 처리
+            updateConfig.forEach(({ group, enter, update, exit }) => {
+                group.data(data, d => d.artistName).join(enter, update, exit);
+            });
+        
+            // 상위 아티스트 이미지 업데이트
             if (data.length > 0) {
                 const topArtist = data[0];
                 topArtistImg.attr("xlink:href", topArtist.img_url);
             }
         
+            // 날짜 라벨 업데이트
             dateLabel.text(reg_date);
         
+            // 기준선 및 레이블 업데이트
             const maxCnt = d3.max(data, d => d.cnt);
-            const baselineValues = [
-                maxCnt * 0.3,
-                maxCnt * 0.6,
-                maxCnt * 0.9
-            ];
+            const baselineValues = [maxCnt * 0.3, maxCnt * 0.6, maxCnt * 0.9];
         
-            baselineGroup.selectAll(".baseline").remove();
-            baselineGroup.selectAll(".baseline-label").remove();
-        
-            baselineValues.forEach((baselineValue) => {
+            baselineGroup.selectAll("*").remove();
+            baselineValues.forEach(baselineValue => {
                 baselineGroup.append("line")
                     .attr("class", "baseline")
                     .attr("x1", x(baselineValue))
@@ -228,7 +301,7 @@ fetch('/bigquery-data')
                     .attr("dy", "0.35em");
             });
         }
-        
+
         let idx = 0;
         function tick() {
             if (idx < keyframes.length) {
@@ -239,6 +312,10 @@ fetch('/bigquery-data')
         }
 
         tick();
-    }).catch(error => {
-        console.error('Error loading or processing the data:', error);
-    });
+
+    } catch(erorr){
+        console.error("Error loading data:", error);
+    }
+}
+
+loadData();
