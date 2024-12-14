@@ -4,47 +4,39 @@ body {
     position: relative;
 }
 svg {
-    /* background-color: pink; */
     background: linear-gradient(#FFFFFF, #FFC4C4);
     display: block;
     margin: 0 auto;
 }
-.chart-title {
-    font-family: 'Roboto', sans-serif;
-    font-size: 22px;
-    font-weight: bold;
-    border-width: 0 0 1px;
-    text-anchor: middle;
+.title-group {
+    text-anchor: start; /* 그룹 내 텍스트 왼쪽 정렬 */
+    transform: translate(10%, 5%); /* SVG 가운데 정렬 */
 }
-/* .chart-title-container {
-    background-color: #ff007a;
-    padding: 20px 0;
-    text-align: center;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.title-border {
+    stroke: #4655FF; /* 테두리 색상 */
+    stroke-width: 8px; /* 테두리 두께 */
+}
+.subtitle {
+    font-size: 19px;
+    font-style: italic;
+    fill: #555;
+    font-weight: bold;
 }
 
 .chart-title {
-    font-size: 24px;
+    font-size: 26px;
+    font-style: italic;
     font-weight: bold;
-    color: white;
-    margin: 0;
-    font-family: 'Arial', sans-serif;
-    padding-left: 10px;
-    position: relative;
+    fill: #333;
 }
 
-.chart-title::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 5px;
-    background-color: white;
-} */
+.description {
+    font-size: 12px;
+    fill: #777;
+    font-style: italic;
+    line-height: 0.5; /* 줄 간격 추가 */
+}
+
 
 .bar {
     fill: steelblue;

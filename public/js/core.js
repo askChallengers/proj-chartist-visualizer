@@ -26,22 +26,53 @@ svg.append("defs")
     .style("stop-color", d => d.color)
     .style("stop-opacity", d => d.opacity);
 
-// 제목 텍스트 추가
-// 상단 제목 추가
-// svg.append("text")
-//     .insert("div", ":first-child") // body의 첫 번째 자식으로 삽입
-//     .attr("class", "chart-title-container") // 컨테이너 클래스
-//     .append("h1")
-//     .attr("class", "chart-title") // 제목 클래스
-//     .text("Who's Weekly Top K-Pop Group?"); // 제목 텍스트
+const titleGroup = svg.append("g")
+    .attr("class", "title-group")
+    .attr("transform", `translate(${svg.attr("width") / 2}, 50)`); // SVG 가운데 정렬
 
-svg.append("text")
+// 왼쪽 테두리를 그리는 line 추가
+titleGroup.append("line")
+    .attr("class", "title-border")
+    .attr("x1", -20) // 그룹 기준 왼쪽 위치
+    .attr("y1", -15) // 테두리 시작점 (그룹 상단을 기준으로 약간 위로 이동)
+    .attr("x2", -20) // 그룹 기준 왼쪽 위치 고정
+    .attr("y2", 90) // 테두리 끝점 (그룹 하단까지)
+    .attr("stroke", "#ff007a") // 테두리 색상
+    .attr("stroke-width", 2); // 테두리 두께
+
+// 서브타이틀 추가
+titleGroup.append("text")
+    .attr("class", "subtitle")
+    .attr("x", 0) // 그룹 내 왼쪽 정렬
+    .attr("y", 10)
+    .text("2nd Week of December");
+
+// 메인 타이틀 추가
+titleGroup.append("text")
     .attr("class", "chart-title")
-    .attr("x", "50%")
-    .attr("y", 60)
+    .attr("x", 0) // 그룹 내 왼쪽 정렬
+    .attr("y", 40)
     .text("Who's Weekly Top K-Pop Group?");
 
+// 설명 텍스트 추가 (여러 줄)
+const descriptionText = titleGroup.append("text")
+    .attr("class", "description")
+    .attr("x", 0) // 그룹 내 왼쪽 정렬
+    .attr("y", 53);
 
+const descriptionLines = [
+    "This chart showcases this week’s top K-Pop groups,",
+    "ranked by the YouTube views of their latest music videos,",
+    "with counts recorded daily at 12:00 AM."
+];
+
+descriptionText.selectAll("tspan")
+    .data(descriptionLines)
+    .enter()
+    .append("tspan")
+    .attr("x", 0)
+    .attr("dy", "1.0em") // 줄 간격
+    .text(d => d);
 
 
 function formatValue(value) {
@@ -71,16 +102,16 @@ async function loadData() {
 
         const x = d3.scaleLinear().range([margin.left, width - margin.right]);
         const y = d3.scaleBand()
-            .range([margin.top + 70, margin.top + 100 + barSize * n * 1.2])
+            .range([margin.top + 70, margin.top + 80 + barSize * n * 1.2])
             .padding(0.3);
 
         const color = d3.scaleOrdinal(d3.schemeTableau10);
 
-        const dateLabel = svg.append("text")
-            .attr("class", "date-label")
-            .attr("x", width - 150)
-            .attr("y", margin.top + 40)
-            .attr("text-anchor", "end");
+        // const dateLabel = svg.append("text")
+        //     .attr("class", "date-label")
+        //     .attr("x", width - 150)
+        //     .attr("y", margin.top + 40)
+        //     .attr("text-anchor", "end");
 
         // BigQuery에서 데이터 가져오기
         const dataResponse = await fetch('/bigquery-data');
@@ -162,7 +193,7 @@ async function loadData() {
 
         const topArtistImg = topArtistImgGroup.append("image")
             .attr("class", "top-artist-img")
-            .attr("x", -50)
+            .attr("x", -20)
             .attr("y", -100)
             .on("error", function() {
                 d3.select(this).attr("xlink:href", "sample_img/sample.png");
@@ -183,14 +214,14 @@ async function loadData() {
                     group: barsGroup.selectAll("rect"),
                     enter: enter => enter.append("rect")
                         .attr("fill", d => color(d.artistName))
-                        .attr("x", x(0) + 10)
-                        .attr("y", d => y(d.artistName))
+                        .attr("x", x(0) + 20)
+                        .attr("y", d => y(d.artistName) + 20)
                         .attr("height", y.bandwidth() * 0.65)
                         .transition(transition)
                         .attr("width", d => x(d.cnt) - x(0)),
                     update: update => update
                         .transition(transition)
-                        .attr("y", d => y(d.artistName))
+                        .attr("y", d => y(d.artistName) + 20)
                         .attr("width", d => x(d.cnt) - x(0)),
                     exit: exit => exit.remove()
                 },
@@ -198,15 +229,15 @@ async function loadData() {
                     group: labelGroup.selectAll("text"),
                     enter: enter => enter.append("text")
                         .attr("class", "label")
-                        .attr("x", x(0) + 10) // 막대 시작 부분에 고정
-                        .attr("y", d => y(d.artistName) + y.bandwidth() / 3) // 막대 높이 중앙 근처
+                        .attr("x", x(0) + 20) // 막대 시작 부분으로 고정
+                        .attr("y", d => y(d.artistName) + 20 + y.bandwidth() / 3)
                         .attr("dy", "0.35em")
                         .text(d => d.artistName)
                         .transition(transition),
                     update: update => update
                         .transition(transition)
-                        .attr("x", x(0) + 10) // 항상 막대 시작 부분에 고정
-                        .attr("y", d => y(d.artistName) + y.bandwidth() / 3),
+                        .attr("x", x(0) + 20) // 막대 시작 부분으로 고정
+                        .attr("y", d => y(d.artistName) + 20 + y.bandwidth() / 3),
                     exit: exit => exit.remove()
                 },
                 {
@@ -214,47 +245,24 @@ async function loadData() {
                     enter: enter => enter.append("text")
                         .attr("class", "value")
                         .attr("x", d => x(d.cnt) - 5)
-                        .attr("y", d => y(d.artistName) + y.bandwidth() / 3)
+                        .attr("y", d => y(d.artistName) + 20 + y.bandwidth() / 3)
                         .attr("dy", "0.35em")
                         .text(d => formatValue(d.cnt))
                         .transition(transition),
                     update: update => update
                         .transition(transition)
                         .attr("x", d => x(d.cnt) - 5)
-                        .attr("y", d => y(d.artistName) + y.bandwidth() / 3)
+                        .attr("y", d => y(d.artistName) + 20 + y.bandwidth() / 3)
                         .text(d => formatValue(d.cnt)),
                     exit: exit => exit.remove()
                 },
-                // {
-                //     group: imgGroup.selectAll("foreignObject"),
-                //     enter: enter => enter.append("foreignObject")
-                //         .attr("x", x(0) - 45) // 이미지 위치
-                //         .attr("y", y(d.artistName) - 11) // 이미지 위치
-                //         .attr("width", 50) // 이미지 너비
-                //         .attr("height", 50) // 이미지 높이
-                //         .append("xhtml:div") // HTML 요소로 이미지 추가
-                //         .style("width", "50px")
-                //         .style("height", "50px")
-                //         .style("border-radius", "15px") // 둥근 테두리 적용
-                //         .style("overflow", "hidden") // 이미지 잘림 방지
-                //         .style("background-image", d => `url(${d.img_url})`) // 배경 이미지 설정
-                //         .style("background-size", "cover") // 이미지 크기 조정
-                //         .style("background-position", "center"),
-                //     update: update => update
-                //         .transition(transition)
-                //         .attr("x", x(0) - 45)
-                //         .attr("y", y(d.artistName) - 11),
-                //     exit: exit => exit.remove()
-                // }
-                
-                
                 {
                     group: imgGroup.selectAll("image"),
                     enter: enter => enter.append("image")
                         .attr("class", "artist-img")
                         .attr("xlink:href", d => d.img_url)
                         .attr("x", x(0) - 45)
-                        .attr("y", d => y(d.artistName) - 11)
+                        .attr("y", d => y(d.artistName) + 8)
                         .attr("preserveAspectRatio", "none")
                         .on("error", function() {
                             d3.select(this).attr("xlink:href", "sample_img/sample.png");
@@ -278,7 +286,7 @@ async function loadData() {
             }
         
             // 날짜 라벨 업데이트
-            dateLabel.text(reg_date);
+            // dateLabel.text(reg_date);
         
             // 기준선 및 레이블 업데이트
             const maxCnt = d3.max(data, d => d.cnt);
@@ -289,14 +297,14 @@ async function loadData() {
                 baselineGroup.append("line")
                     .attr("class", "baseline")
                     .attr("x1", x(baselineValue))
-                    .attr("y1", margin.top + 70)
+                    .attr("y1", margin.top + 85)
                     .attr("x2", x(baselineValue))
-                    .attr("y2", height + margin.top + 100 - 90);
+                    .attr("y2", height + margin.top -10);
         
                 baselineGroup.append("text")
                     .attr("class", "baseline-label")
                     .attr("x", x(baselineValue) + 5)
-                    .attr("y", margin.top + 60)
+                    .attr("y", margin.top + 75)
                     .text(formatValue(Math.round(baselineValue)))
                     .attr("dy", "0.35em");
             });

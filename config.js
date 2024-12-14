@@ -5,7 +5,7 @@ const commonConfig = {
     port: 8080,
     result_cnt: 8,          // 결과 막대 수
     period: 7,              // 기간
-    video_time: 20000       // 동영상 길이(ms)
+    video_time: 15000       // 동영상 길이(ms)
 };
 // duration은 commonConfig 객체를 초기화한 후 계산
 commonConfig.duration = Math.floor((commonConfig.video_time / commonConfig.period) * 10) / 10;      // 하루 데이터가 지나가는 시간(소수점 둘째 자리에서 내림.)
