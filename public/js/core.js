@@ -91,6 +91,16 @@ async function loadData() {
         const configResponse = await fetch('/config');
         const config = await configResponse.json();
         
+        // // weekly_title 값 추출
+        // const weeklyTitle = data[0]?.weekly_title || "Weekly Title Not Found";
+
+        // // subtitle 업데이트
+        // titleGroup.append("text")
+        //     .attr("class", "subtitle")
+        //     .attr("x", 0) // 그룹 내 왼쪽 정렬
+        //     .attr("y", 10)
+        //     .text(weeklyTitle);
+
         // config에서 n과 duration 설정 값 가져오기
         const n = config.result_cnt || 8;  // 기본값 8
         const duration = config.duration || 2000;  // 기본값 2000ms
@@ -214,6 +224,7 @@ async function loadData() {
                     group: barsGroup.selectAll("rect"),
                     enter: enter => enter.append("rect")
                         .attr("fill", d => color(d.artistName))
+                        // .attr("fill", d => color(d.RGB 핵사 값)) // 빅쿼리에서 RGB 핵사 값 받아와서 넣어주면 됨.
                         .attr("x", x(0) + 20)
                         .attr("y", d => y(d.artistName) + 20)
                         .attr("height", y.bandwidth() * 0.65)
@@ -296,14 +307,14 @@ async function loadData() {
             baselineValues.forEach(baselineValue => {
                 baselineGroup.append("line")
                     .attr("class", "baseline")
-                    .attr("x1", x(baselineValue))
+                    .attr("x1", x(baselineValue) + 20)
                     .attr("y1", margin.top + 85)
-                    .attr("x2", x(baselineValue))
+                    .attr("x2", x(baselineValue) + 20)
                     .attr("y2", height + margin.top -10);
         
                 baselineGroup.append("text")
                     .attr("class", "baseline-label")
-                    .attr("x", x(baselineValue) + 5)
+                    .attr("x", x(baselineValue) + 25)
                     .attr("y", margin.top + 75)
                     .text(formatValue(Math.round(baselineValue)))
                     .attr("dy", "0.35em");

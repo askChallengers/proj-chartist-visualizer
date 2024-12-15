@@ -52,7 +52,7 @@ svg {
 .value {
     font-size: 12px;
     text-anchor: middle;
-    fill: #333;
+    fill: white;
 }
 .date-label {
     font-size: 24px;
@@ -75,11 +75,11 @@ svg {
     clip-path: circle(50%);
 }
 .baseline {
-    stroke: red;
+    stroke: grey;
     stroke-width: 2;
     stroke-dasharray: 5, 5;
 }
 .baseline-label {
     font-size: 14px;
-    fill: red;
+    fill: grey;
 }
