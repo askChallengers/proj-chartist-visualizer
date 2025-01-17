@@ -39,6 +39,9 @@ app.get('/bigquery-data', async (req, res) => {
           , main.view_count
           , latest.img_url
           , main.reg_date
+          , month
+          , week_of_month
+          , color_1
         FROM team-ask-infra.chartist.daily_report main
           JOIN latest_img latest ON main.artistId = latest.artistId AND latest.rn = 1
         WHERE 1 = 1 

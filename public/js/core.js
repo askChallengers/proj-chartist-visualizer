@@ -41,11 +41,11 @@ titleGroup.append("line")
     .attr("stroke-width", 2); // 테두리 두께
 
 // 서브타이틀 추가
-titleGroup.append("text")
-    .attr("class", "subtitle")
-    .attr("x", 0) // 그룹 내 왼쪽 정렬
-    .attr("y", 10)
-    .text("2nd Week of December");
+// titleGroup.append("text")
+//     .attr("class", "subtitle")
+//     .attr("x", 0) // 그룹 내 왼쪽 정렬
+//     .attr("y", 10)
+//     .text("2nd Week of December");
 
 // 메인 타이틀 추가
 titleGroup.append("text")
@@ -87,19 +87,10 @@ function formatValue(value) {
 
 async function loadData() {
     try{
+
         // config.js에서 설정 가져오기
         const configResponse = await fetch('/config');
         const config = await configResponse.json();
-        
-        // // weekly_title 값 추출
-        // const weeklyTitle = data[0]?.weekly_title || "Weekly Title Not Found";
-
-        // // subtitle 업데이트
-        // titleGroup.append("text")
-        //     .attr("class", "subtitle")
-        //     .attr("x", 0) // 그룹 내 왼쪽 정렬
-        //     .attr("y", 10)
-        //     .text(weeklyTitle);
 
         // config에서 n과 duration 설정 값 가져오기
         const n = config.result_cnt || 8;  // 기본값 8
@@ -128,6 +119,17 @@ async function loadData() {
         const data = await dataResponse.json();
 
         data.forEach(d => {
+
+            // subtitle(2nd Week of December) 값 추출
+            const weeklyTitle = d.week_of_month + " Week of " + d?.month || "Weekly Title Not Found";
+
+            // subtitle 업데이트
+            titleGroup.append("text")
+                .attr("class", "subtitle")
+                .attr("x", 0) // 그룹 내 왼쪽 정렬
+                .attr("y", 10)
+                .text(weeklyTitle);
+
             d.view_count = +d.view_count;
 
             let regDateString;
