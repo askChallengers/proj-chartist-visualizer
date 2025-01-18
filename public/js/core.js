@@ -1,4 +1,3 @@
-// const svg = d3.select("svg");
 // body의 SVG를 동적으로 설정
 const body = d3.select("body");
 
@@ -40,13 +39,6 @@ titleGroup.append("line")
     .attr("stroke", "#ff007a") // 테두리 색상
     .attr("stroke-width", 2); // 테두리 두께
 
-// 서브타이틀 추가
-// titleGroup.append("text")
-//     .attr("class", "subtitle")
-//     .attr("x", 0) // 그룹 내 왼쪽 정렬
-//     .attr("y", 10)
-//     .text("2nd Week of December");
-
 // 메인 타이틀 추가
 titleGroup.append("text")
     .attr("class", "chart-title")
@@ -85,6 +77,21 @@ function formatValue(value) {
     }
 }
 
+// 숫자 값 -> 해당 월의 영문으로 변환
+function getMonthName(monthNumber) {
+    const months = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+
+    // 1~12 범위 확인
+    if (monthNumber < 1 || monthNumber > 12) {
+        throw new Error("Invalid month number. Must be between 1 and 12.");
+    }
+
+    return months[monthNumber - 1];
+}
+
 async function loadData() {
     try{
 
@@ -106,31 +113,29 @@ async function loadData() {
             .range([margin.top + 70, margin.top + 80 + barSize * n * 1.2])
             .padding(0.3);
 
-        const color = d3.scaleOrdinal(d3.schemeTableau10);
-
-        // const dateLabel = svg.append("text")
-        //     .attr("class", "date-label")
-        //     .attr("x", width - 150)
-        //     .attr("y", margin.top + 40)
-        //     .attr("text-anchor", "end");
+        // d3에서 제공하는 색상을 사용할 때.
+        // const color = d3.scaleOrdinal(d3.schemeTableau10);
 
         // BigQuery에서 데이터 가져오기
         const dataResponse = await fetch('/bigquery-data');
         const data = await dataResponse.json();
+        const artistColorMap = {};
 
+        // subtitle(2nd Week of December) 값 추출
+        const weeklyTitle = data[0].week_of_month + " Week of " + getMonthName(data[0]?.month) || "Weekly Title Not Found";
+
+        // subtitle 업데이트
+        titleGroup.append("text")
+            .attr("class", "subtitle")
+            .attr("x", 0) // 그룹 내 왼쪽 정렬
+            .attr("y", 10)
+            .text(weeklyTitle);
+            
         data.forEach(d => {
-
-            // subtitle(2nd Week of December) 값 추출
-            const weeklyTitle = d.week_of_month + " Week of " + d?.month || "Weekly Title Not Found";
-
-            // subtitle 업데이트
-            titleGroup.append("text")
-                .attr("class", "subtitle")
-                .attr("x", 0) // 그룹 내 왼쪽 정렬
-                .attr("y", 10)
-                .text(weeklyTitle);
-
             d.view_count = +d.view_count;
+
+            // 빅쿼리 데이터 중 아티스트와 색상 매핑
+            artistColorMap[d.artistName] = d.color_1 || "#cccccc"; // 기본값은 회색
 
             let regDateString;
             if (typeof d.reg_date === 'object' && 'value' in d.reg_date) {
@@ -225,8 +230,8 @@ async function loadData() {
                 {
                     group: barsGroup.selectAll("rect"),
                     enter: enter => enter.append("rect")
-                        .attr("fill", d => color(d.artistName))
-                        // .attr("fill", d => color(d.RGB 핵사 값)) // 빅쿼리에서 RGB 핵사 값 받아와서 넣어주면 됨.
+                        // .attr("fill", d => color(d.artistName))
+                        .attr("fill", d => artistColorMap[d.artistName]) // 아티스트 색상 적용
                         .attr("x", x(0) + 20)
                         .attr("y", d => y(d.artistName) + 20)
                         .attr("height", y.bandwidth() * 0.65)
@@ -335,7 +340,7 @@ async function loadData() {
         tick();
 
     } catch(erorr){
-        console.error("Error loading data:", error);
+        console.error("Error loading data:", erorr);
     }
 }
 
