@@ -3,8 +3,9 @@ body {
     background-color: #f0f0f0;
     position: relative;
 }
+
 svg {
-    background: linear-gradient(#FFFFFF, #FFC4C4);
+    background: linear-gradient(#FFFFFF, #4AB6C5);
     display: block;
     margin: 0 auto;
 }

@@ -46,7 +46,9 @@ function wait(milliseconds) {
   const recorder = new PuppeteerScreenRecorder(page);
 
   const formattedDate = getFormattedDate();
-  const localVideoPath = path.join(__dirname, `output_${formattedDate}.mp4`);
+  const fileName = `output_${formattedDate}.mp4`;
+  const localVideoPath = path.join(__dirname, fileName);
+  const destinationPath = `proj-chartist-visualizer/`+ fileName;
 
   await page.goto('http://localhost:'+port+'/sample.html', {
     waitUntil: 'networkidle2',
@@ -61,14 +63,14 @@ function wait(milliseconds) {
   await browser.close();
 
   // 비디오를 구글 스토리지로 업로드
-  await uploadToGCS(localVideoPath);
+  await uploadToGCS(destinationPath);
 
   // 구글 스토리지에 파일 업로드하는 함수
-  async function uploadToGCS(filePath) {
-    await storage.bucket(bucketName).upload(filePath, {
-      destination: path.basename(filePath), // 파일 이름 유지
+  async function uploadToGCS(destinationPath) {
+    await storage.bucket(bucketName).upload(localVideoPath, {
+      destination: destinationPath, // 파일 이름 유지
     });
-    console.log(`${filePath}이(가) ${bucketName} 버킷에 업로드되었습니다.`);
+    console.log(`${localVideoPath}이(가) ${bucketName} 버킷(${destinationPath}) 업로드되었습니다.`);
   }
 
   // 업로드 후 로컬 파일 삭제
