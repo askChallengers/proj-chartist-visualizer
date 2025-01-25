@@ -287,7 +287,9 @@ async function loadData() {
                         })
                         .transition(transition),
                     update: update => update
-                        .transition(transition),
+                        .transition(transition)
+                        .attr("x", x(0) - 45)
+                        .attr("y", d => y(d.artistName) + 8),
                     exit: exit => exit.remove()
                 }
             ];
@@ -339,8 +341,8 @@ async function loadData() {
 
         tick();
 
-    } catch(erorr){
-        console.error("Error loading data:", erorr);
+    } catch(error){
+        console.error("Error loading data:", error);
     }
 }
 
