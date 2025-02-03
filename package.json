@@ -18,5 +18,13 @@
     "puppeteer": "^23.5.3",
     "puppeteer-screen-recorder": "^3.0.3"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/askChallengers/proj-chartist-visualizer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/askChallengers/proj-chartist-visualizer/issues"
+  },
+  "homepage": "https://github.com/askChallengers/proj-chartist-visualizer#readme"
 }

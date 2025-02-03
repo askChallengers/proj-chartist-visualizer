@@ -26,7 +26,7 @@ app.get('/bigquery-data', async (req, res) => {
         WITH latest_img AS (
           SELECT 
             artistId
-            , img_url
+            , artist_img_url
             , reg_date
             , ROW_NUMBER() OVER (PARTITION BY artistId ORDER BY reg_date DESC) AS rn
           FROM team-ask-infra.chartist.daily_report
@@ -37,7 +37,7 @@ app.get('/bigquery-data', async (req, res) => {
         SELECT 
           main.artistName
           , main.view_count
-          , latest.img_url
+          , latest.artist_img_url
           , main.reg_date
           , month
           , week_of_month

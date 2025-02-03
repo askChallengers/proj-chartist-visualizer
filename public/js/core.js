@@ -174,7 +174,7 @@ async function loadData() {
                 .map(d => ({
                     artistName: d.artistName,
                     cnt: d.view_count,
-                    img_url: d.img_url
+                    artist_img_url: d.artist_img_url
                 }))
                 .sort((a, b) => d3.descending(a.cnt, b.cnt))
                 .slice(0, n);
@@ -192,7 +192,7 @@ async function loadData() {
             cumulativeData.push([reg_date, Object.entries(cumulativeCounts).map(([artistName, cnt]) => ({
                 artistName,
                 cnt,
-                img_url: lastValidData.get(artistName)?.img_url || ""
+                artist_img_url: lastValidData.get(artistName)?.artist_img_url || ""
             }))]);
         });
 
@@ -278,7 +278,7 @@ async function loadData() {
                     group: imgGroup.selectAll("image"),
                     enter: enter => enter.append("image")
                         .attr("class", "artist-img")
-                        .attr("xlink:href", d => d.img_url)
+                        .attr("xlink:href", d => d.artist_img_url)
                         .attr("x", x(0) - 45)
                         .attr("y", d => y(d.artistName) + 8)
                         .attr("preserveAspectRatio", "none")
@@ -302,7 +302,7 @@ async function loadData() {
             // 상위 아티스트 이미지 업데이트
             if (data.length > 0) {
                 const topArtist = data[0];
-                topArtistImg.attr("xlink:href", topArtist.img_url);
+                topArtistImg.attr("xlink:href", topArtist.artist_img_url);
             }
         
             // 날짜 라벨 업데이트
